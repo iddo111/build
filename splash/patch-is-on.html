@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>🎆 PATCH IS ON 🎆</title>
+<style>
+  :root { --run: 180s; }              /* 3-minute show */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #05060f; }
+  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; cursor: none; }
+
+  canvas { position: fixed; inset: 0; display: block; }
+
+  .overlay {
+    position: fixed; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; text-align: center;
+    pointer-events: none; user-select: none;
+  }
+  .title {
+    font-size: clamp(2.5rem, 12vw, 11rem); font-weight: 900; letter-spacing: .04em;
+    line-height: .95;
+    background: linear-gradient(90deg, #ff3b3b 0%, #ffffff 50%, #3b6bff 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    text-shadow: 0 0 40px rgba(255,255,255,.25);
+    animation: pop 1.2s ease-out both, pulse 2.4s ease-in-out infinite 1.2s;
+  }
+  .sub {
+    margin-top: 1.2rem; font-size: clamp(1rem, 3.2vw, 2.2rem); font-weight: 600;
+    color: #cdd6ff; letter-spacing: .35em; text-transform: uppercase;
+    opacity: 0; animation: fadein 1s ease-out .8s both;
+  }
+  .spark { font-size: clamp(1.6rem, 6vw, 4rem); margin-top: 1rem;
+           opacity: 0; animation: fadein 1s ease-out 1.4s both; }
+
+  .done .title { animation: pop 1s ease-out both; }
+  .done .sub::after { content: " — show complete"; }
+
+  @keyframes pop   { 0% { transform: scale(.3); opacity: 0; } 60% { transform: scale(1.08); } 100% { transform: scale(1); opacity: 1; } }
+  @keyframes pulse { 0%,100% { filter: drop-shadow(0 0 18px rgba(255,255,255,.15)); } 50% { filter: drop-shadow(0 0 46px rgba(120,160,255,.6)); } }
+  @keyframes fadein{ to { opacity: 1; } }
+
+  .hint { position: fixed; bottom: 18px; left: 0; right: 0; text-align: center;
+          color: #4a5280; font-size: .8rem; letter-spacing: .15em; }
+</style>
+</head>
+<body>
+<canvas id="sky"></canvas>
+<div class="overlay" id="overlay">
+  <div class="title">🎆&nbsp;PATCH&nbsp;IS&nbsp;ON&nbsp;🎆</div>
+  <div class="sub">Deployed &amp; Live</div>
+  <div class="spark">🎇 ✨ 🎆 ✨ 🎇</div>
+</div>
+<div class="hint">press F for fullscreen · Esc to exit</div>
+
+<script>
+const canvas = document.getElementById('sky');
+const ctx = canvas.getContext('2d');
+const overlay = document.getElementById('overlay');
+const RUN_MS = 180000;                 // 3 minutes
+const start = performance.now();
+
+let W, H;
+function resize() { W = canvas.width = innerWidth; H = canvas.height = innerHeight; }
+addEventListener('resize', resize); resize();
+
+// Fourth-of-July palette
+const COLORS = ['#ff3b3b','#ffffff','#3b6bff','#ffd23b','#ff7ad9','#5bf0c8'];
+const rand = (a, b) => a + Math.random() * (b - a);
+
+const rockets = [];
+const sparks = [];
+
+class Rocket {
+  constructor() {
+    this.x = rand(W * 0.1, W * 0.9);
+    this.y = H;
+    this.tx = this.x + rand(-W * 0.08, W * 0.08);
+    this.ty = rand(H * 0.12, H * 0.45);
+    this.vy = rand(-13, -9);
+    this.color = COLORS[(Math.random() * COLORS.length) | 0];
+    this.dead = false;
+  }
+  update() {
+    this.x += (this.tx - this.x) * 0.02;
+    this.y += this.vy;
+    this.vy += 0.12;
+    if (this.vy >= -1 || this.y <= this.ty) { this.explode(); this.dead = true; }
+  }
+  explode() {
+    const n = 60 + (Math.random() * 50 | 0);
+    for (let i = 0; i < n; i++) sparks.push(new Spark(this.x, this.y, this.color));
+  }
+  draw() {
+    ctx.beginPath(); ctx.arc(this.x, this.y, 2.4, 0, 7); ctx.fillStyle = this.color; ctx.fill();
+  }
+}
+
+class Spark {
+  constructor(x, y, color) {
+    const a = Math.random() * Math.PI * 2, s = rand(1, 7);
+    this.x = x; this.y = y;
+    this.vx = Math.cos(a) * s; this.vy = Math.sin(a) * s;
+    this.life = 1; this.decay = rand(0.008, 0.022);
+    this.color = Math.random() < 0.2 ? '#ffffff' : color;
+  }
+  update() { this.x += this.vx; this.y += this.vy; this.vy += 0.05; this.vx *= 0.985; this.vy *= 0.985; this.life -= this.decay; }
+  draw() {
+    ctx.globalAlpha = Math.max(this.life, 0);
+    ctx.beginPath(); ctx.arc(this.x, this.y, 2.2, 0, 7); ctx.fillStyle = this.color; ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+}
+
+let last = 0;
+function loop(t) {
+  const elapsed = t - start;
+  ctx.fillStyle = 'rgba(5,6,15,0.22)';        // trailing fade
+  ctx.fillRect(0, 0, W, H);
+
+  if (elapsed < RUN_MS && t - last > rand(280, 620)) { rockets.push(new Rocket()); last = t; }
+
+  for (let i = rockets.length - 1; i >= 0; i--) { rockets[i].update(); rockets[i].draw(); if (rockets[i].dead) rockets.splice(i, 1); }
+  for (let i = sparks.length - 1; i >= 0; i--) { sparks[i].update(); sparks[i].draw(); if (sparks[i].life <= 0) sparks.splice(i, 1); }
+
+  if (elapsed >= RUN_MS && sparks.length === 0) { finish(); return; }
+  requestAnimationFrame(loop);
+}
+
+function finish() {
+  document.body.classList.add('done');
+  overlay.querySelector('.sub').textContent = 'Deployed & Live';
+  // final grand finale
+  for (let k = 0; k < 6; k++) setTimeout(() => { const r = new Rocket(); r.x = r.tx = rand(W*0.2, W*0.8); r.y = rand(H*0.2, H*0.4); r.explode(); }, k * 180);
+}
+
+addEventListener('keydown', e => {
+  if (e.key === 'f' || e.key === 'F') (document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen());
+});
+// try to go fullscreen on first interaction (browsers block auto-fullscreen)
+addEventListener('click', () => { if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {}); }, { once: true });
+
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
