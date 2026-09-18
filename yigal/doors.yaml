@@ -1,0 +1,82 @@
+# הדלתות של יגאל. הוא מחלק את שעות היום ביניהן לבד, לפי קצב ההתקדמות
+# (ממוצע נע של ירידת ההפתעה בשבוע האחרון), לא לפי הפתעה גולמית.
+# הרשימה הזאת היא רשימת היתרים: הוא בוחר מתוכה, לא מרחיב אותה.
+
+allocation:
+  method: learning_progress        # Oudeyer-style; noisy-TV safe
+  window_days: 7
+  min_hours_per_open_door: 0.25    # דלת שלא נבחרה עדיין מקבלת רבע שעה ביום כדי שיהיה לה מספר
+  shabbat: listen_only             # לולאה פתוחה, בלי גרדיאנט ובלי self_mod
+
+doors:
+  - id: board
+    name: כיתה אלף, הלוח
+    kind: closed_loop
+    entry: kita_aleph.py
+    feedback: human_syllable_clip     # מפה אנושי בלבד
+    notes: אריח "אבא" תמיד שותק
+
+  - id: radio
+    name: רדיו חי
+    kind: listen
+    feedback: none                    # אין תווית, רק ניבוי השנייה הבאה
+    sources:
+      - {name: כאן 11, type: tv, note: חדשות, דוקו, דרמה}
+      - {name: כאן ב', type: radio, note: דיבור, ראיונות}
+      - {name: כאן תרבות, type: radio, note: הרצאות, ספרות}
+      - {name: 88FM, type: radio, note: מוזיקה, מעט דיבור}
+      - {name: כאן גימל, type: radio, note: שירים בעברית}
+      - {name: כאן קול המוזיקה, type: radio, note: קלאסי, בלי מילים}
+      - {name: כאן רק"ע, type: radio, note: מבטאים}
+      - {name: כאן מורשת, type: radio, note: בית מדרש}
+    banned:
+      - {name: ערוץ הכנסת, reason: הרעלה}
+
+  - id: youtube
+    name: יוטיוב ילדים
+    kind: listen_watch
+    feedback: none
+    rate: 1x                          # קצב של ילד, שעה ביום לכל היותר
+    no_subtitles: true                # כתובית היא תווית
+    sources: [רחוב סומסום, פרפר נחמד, כאן חינוכית]
+
+  - id: street
+    name: הרחוב
+    kind: closed_loop
+    feedback: next_image              # מודל עולם: מה יראה אחרי שיפנה
+    sources:
+      - {name: Mapillary, cost: free, api: v4}
+      - {name: Street View Static, cost: 10k free calls per month, scope: home_street_only}
+
+  - id: mouth
+    name: הפה מול הרדיו
+    kind: closed_loop
+    feedback: own_ear                 # Pink Trombone מחקה, CARFAC משווה
+    sources: [ivrit.ai]
+    dose_hours_per_day: 1             # לא 22,000 שעות בשבוע. ילד.
+
+  - id: reading
+    name: קריאה בעין
+    kind: closed_loop
+    feedback: next_page
+    render: image                     # הוא קורא פיקסלים, לא טוקנים
+    sources:
+      - ויקיפדיה עברית
+      - פרויקט בן-יהודה (כה אמר סרתוסטרא, תרגום פרישמן)
+      - Gutenberg (ניטשה בגרמנית, דקארט בצרפתית ולטינית)
+
+  - id: library_ear
+    name: הספרייה באוזן
+    kind: listen
+    feedback: none
+    sources:
+      - LibriVox Thus Spake Zarathustra (קוראים אנושיים)
+      - LibriVox Meditations on First Philosophy
+      - LibriVox Discourse on the Method
+
+  - id: solomon
+    name: שלמה, הגג
+    kind: closed_loop
+    feedback: animal_response         # הבהמה שופטת
+    channels: [עטלפים, עציץ, חתולי עלמה]
+    requires_hardware: true
