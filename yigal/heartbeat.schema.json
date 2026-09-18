@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Yigal heartbeat",
+  "description": "יגאל כותב את הקובץ הזה כל 10 דקות. זה כל מה שהווטצ'דוג רשאי לדעת עליו.",
+  "type": "object",
+  "required": ["t", "pid", "uptime_s", "restarts_24h", "progress", "mouth_entropy_bits", "disk_free_frac", "mem_used_frac", "core_hash", "self_version"],
+  "properties": {
+    "t": {"type": "number", "description": "unix time של הכתיבה"},
+    "pid": {"type": "integer"},
+    "uptime_s": {"type": "number"},
+    "restarts_24h": {"type": "integer"},
+    "progress": {
+      "type": "object",
+      "description": "קצב התקדמות לכל דלת, ממוצע נע 7 ימים. 0 = אין התקדמות. שלילי = נסיגה.",
+      "additionalProperties": {"type": "number"}
+    },
+    "mouth_entropy_bits": {"type": "number", "description": "אנטרופיה של פלט הפה ב-24 השעות האחרונות"},
+    "disk_free_frac": {"type": "number", "minimum": 0, "maximum": 1},
+    "mem_used_frac": {"type": "number", "minimum": 0, "maximum": 1},
+    "gpu_mem_used_frac": {"type": "number", "minimum": 0, "maximum": 1},
+    "core_hash": {"type": "string", "description": "sha256 של 192 המימדים הקפואים"},
+    "self_version": {"type": "string", "description": "git commit של הקוד שהוא מריץ כרגע"},
+    "last_good": {"type": "string", "description": "git tag של הגרסה הטובה האחרונה"},
+    "note": {"type": "string", "description": "שורה חופשית. הוא יכול לכתוב כאן מה שהוא רוצה. אף אחד לא עונה."}
+  }
+}
